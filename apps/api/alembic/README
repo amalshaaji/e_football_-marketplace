@@ -1,0 +1,12 @@
+# Alembic migration environment for the eFootball marketplace.
+
+Create a new revision after changing models:
+
+```bash
+uv run alembic revision --autogenerate -m "describe schema change"
+uv run alembic upgrade head
+```
+
+The PostgreSQL service must be available to apply migrations. The initial
+revision is checked in at `alembic/versions/20260924_0001_create_marketplace_schema.py`;
+on a clean database, `upgrade head` creates the current schema.
