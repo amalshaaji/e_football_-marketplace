@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from app.core.errors import DomainError
 from app.database.models import Conversation, Listing, ListingStatus, Message, Notification, Order, OrderStatus, Report, Review, User
 from app.engagement.schemas import ConversationCreate, MessageCreate, ReportCreate, ReviewCreate
+from app.jobs.queue import enqueue_notification
 
 
 class EngagementService:
@@ -25,9 +26,9 @@ class EngagementService:
         review = Review(order_id=order.id, author_id=author.id, seller_id=order.seller_id, rating=payload.rating, body=payload.body)
         self.session.add(review)
         self.session.flush()
-        self.session.add(Notification(user_id=order.seller_id, event_type="review.created", payload={"review_id": str(review.id), "order_id": str(order.id)}))
         self.session.commit()
         self.session.refresh(review)
+        enqueue_notification(order.seller_id, "review.created", {"review_id": str(review.id), "order_id": str(order.id)})
         return review
 
     def list_reviews(self, seller_id: UUID) -> list[Review]:
@@ -111,9 +112,9 @@ class EngagementService:
         self.session.add(message)
         conversation.updated_at = datetime.now(UTC)
         self.session.flush()
-        self.session.add(Notification(user_id=recipient_id, event_type="message.created", payload={"conversation_id": str(conversation.id), "message_id": str(message.id)}))
         self.session.commit()
         self.session.refresh(message)
+        enqueue_notification(recipient_id, "message.created", {"conversation_id": str(conversation.id), "message_id": str(message.id)})
         return message
 
     def _mark_read(self, conversation: Conversation, user: User) -> None:

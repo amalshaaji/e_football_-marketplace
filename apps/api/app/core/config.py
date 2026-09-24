@@ -26,6 +26,15 @@ class Settings(BaseSettings):
     access_token_expire_minutes: int = 30
     refresh_token_expire_days: int = 14
     payment_webhook_secret: str = ""
+    redis_url: str = "redis://redis:6379/0"
+    job_max_attempts: int = 5
+    smtp_host: str = ""
+    smtp_port: int = 587
+    smtp_username: str = ""
+    smtp_password: str = ""
+    smtp_from_email: str = ""
+    smtp_use_tls: bool = True
+    media_root: str = "/data/media"
 
     @property
     def cors_origin_list(self) -> list[str]:

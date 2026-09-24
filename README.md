@@ -2,7 +2,7 @@
 
 Web platform for browsing, listing, buying, and managing eFootball game accounts.
 
-**Current phase:** 13 — Notifications & Background Jobs (next)
+**Current phase:** 14 — Admin & Moderation (next)
 
 **Completed:** Phase 1 — Foundation; Phase 2 — Frontend Design System; Phase 3 — Database Architecture (models/migration implemented; live DB application pending); Phase 4 — FastAPI Backend Foundation.
 
@@ -10,14 +10,20 @@ Phase status is tracked against the completion criteria in the PRD. Phases 5–1
 have initial implementations for authentication, profiles, listings, orders,
 buyer/seller dashboards, favorites, reviews, and messaging. These phases remain
 in progress pending live PostgreSQL integration. Phase 9 also requires selecting
-and verifying a real payment provider. Later phases cover notifications and
-background jobs, moderation, security hardening, QA, deployment, operations,
-and launch readiness.
+and verifying a real payment provider. Later phases cover admin moderation,
+security hardening, QA, deployment, operations, and launch readiness.
 
 Phase 12 implementation is complete: favorites, eligible reviews and
 moderation, reporting, participant-only messaging, read state, and user-visible
 in-app notifications are implemented. Live PostgreSQL integration has not yet
 been verified in this environment.
+
+Phase 13 adds a Redis-backed worker queue with processing recovery, retries,
+dead-letter handling, async notification persistence, and expired-checkout
+cleanup. SMTP email delivery and safe image metadata processing are supported
+when configured. Image resizing and remote storage upload remain unimplemented.
+The worker and Redis configuration are in Compose; live Redis/database worker
+integration has not been run in this environment.
 
 ## Stack
 
@@ -38,9 +44,10 @@ been verified in this environment.
 ```bash
 cp .env.example .env
 make install
-docker compose up postgres -d
+docker compose up postgres redis -d
 make test-api
 make dev-api
+make dev-worker
 make dev-web
 ```
 
@@ -55,6 +62,7 @@ make dev-web
 | `make install` | Install frontend and backend dependencies |
 | `make dev-web` | Run the Vite dev server |
 | `make dev-api` | Run FastAPI with reload |
+| `make dev-worker` | Run the Redis-backed job worker |
 | `make test-api` | Run backend tests |
 | `cd apps/api && uv run alembic upgrade head` | Apply database migrations |
 | `cd apps/web && npm run build` | Build the web app |

@@ -16,6 +16,20 @@ services:
       timeout: 5s
       retries: 10
 
+  redis:
+    image: redis:7-alpine
+    container_name: efootball-redis
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
   api:
     build:
       context: ./apps/api
@@ -25,11 +39,49 @@ services:
       DATABASE_URL: postgresql+psycopg://efootball:efootball@postgres:5432/efootball
       CORS_ORIGINS: http://localhost:5173
       ENVIRONMENT: development
+      REDIS_URL: redis://redis:6379/0
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USERNAME: ${SMTP_USERNAME:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_FROM_EMAIL: ${SMTP_FROM_EMAIL:-}
+      SMTP_USE_TLS: ${SMTP_USE_TLS:-true}
+      MEDIA_ROOT: /data/media
     ports:
       - "8000:8000"
     depends_on:
       postgres:
         condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - media_data:/data/media
+
+  worker:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
+    container_name: efootball-worker
+    command: ["python", "-m", "app.jobs.worker"]
+    environment:
+      DATABASE_URL: postgresql+psycopg://efootball:efootball@postgres:5432/efootball
+      REDIS_URL: redis://redis:6379/0
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USERNAME: ${SMTP_USERNAME:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_FROM_EMAIL: ${SMTP_FROM_EMAIL:-}
+      SMTP_USE_TLS: ${SMTP_USE_TLS:-true}
+      ENVIRONMENT: development
+      MEDIA_ROOT: /data/media
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - media_data:/data/media
+    restart: unless-stopped
 
   web:
     build:
@@ -45,3 +97,5 @@ services:
 
 volumes:
   postgres_data:
+  redis_data:
+  media_data:
