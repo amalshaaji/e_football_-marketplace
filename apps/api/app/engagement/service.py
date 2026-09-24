@@ -5,7 +5,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.errors import DomainError
-from app.database.models import Conversation, Listing, ListingStatus, Message, Notification, Order, OrderStatus, Report, Review, User
+from app.database.models import AuditLog, Conversation, Listing, ListingStatus, Message, Notification, Order, OrderStatus, Report, Review, User
 from app.engagement.schemas import ConversationCreate, MessageCreate, ReportCreate, ReviewCreate
 from app.jobs.queue import enqueue_notification
 
@@ -34,11 +34,13 @@ class EngagementService:
     def list_reviews(self, seller_id: UUID) -> list[Review]:
         return list(self.session.scalars(select(Review).where(Review.seller_id == seller_id, Review.is_hidden.is_(False)).order_by(Review.created_at.desc())))
 
-    def moderate_review(self, review_id: UUID, hide: bool) -> Review:
+    def moderate_review(self, review_id: UUID, hide: bool, moderator: User | None = None) -> Review:
         review = self.session.get(Review, review_id)
         if review is None:
             raise DomainError("review_not_found", "Review was not found.", 404)
         review.is_hidden = hide
+        if moderator is not None:
+            self.session.add(AuditLog(actor_id=moderator.id, action="review.moderated", entity_type="review", entity_id=review.id, details={"is_hidden": hide}))
         self.session.commit()
         self.session.refresh(review)
         return review

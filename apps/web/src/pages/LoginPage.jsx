@@ -17,7 +17,7 @@ export default function LoginPage() {
       localStorage.setItem('access_token', result.access_token)
       localStorage.setItem('refresh_token', result.refresh_token)
       localStorage.setItem('current_user', JSON.stringify(result.user))
-      navigate('/dashboard/buyer')
+      navigate(result.user.role === 'ADMIN' ? '/dashboard/admin' : result.user.role === 'SELLER' ? '/dashboard/seller' : '/dashboard/buyer')
     } catch (err) { setError(err.message) } finally { setBusy(false) }
   }
   return <FormShell onSubmit={handleSubmit} title="Welcome back" intro="Log in to continue to your marketplace account." footer={<>New to the marketplace? <Link className="text-link" to="/register">Create an account</Link></>}>

@@ -2,7 +2,7 @@
 
 Web platform for browsing, listing, buying, and managing eFootball game accounts.
 
-**Current phase:** 14 — Admin & Moderation (next)
+**Current phase:** 15 — Security Hardening (next)
 
 **Completed:** Phase 1 — Foundation; Phase 2 — Frontend Design System; Phase 3 — Database Architecture (models/migration implemented; live DB application pending); Phase 4 — FastAPI Backend Foundation.
 
@@ -24,6 +24,13 @@ cleanup. SMTP email delivery and safe image metadata processing are supported
 when configured. Image resizing and remote storage upload remain unimplemented.
 The worker and Redis configuration are in Compose; live Redis/database worker
 integration has not been run in this environment.
+
+After registering a trusted account, an operator can bootstrap an administrator
+from `apps/api` with `uv run python scripts/set_admin_role.py user@example.com`.
+
+Phase 14 implements administrator-only user management, listing and report
+moderation, review controls, order/payment inspection, platform statistics, and
+audit history. Live database verification remains pending.
 
 ## Stack
 

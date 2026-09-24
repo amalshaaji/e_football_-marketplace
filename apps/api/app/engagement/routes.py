@@ -25,8 +25,8 @@ def seller_reviews(seller_id: UUID = Query(), db: Session = Depends(get_db)) -> 
 
 
 @router.patch("/reviews/{review_id}/moderation", response_model=ReviewResponse)
-def moderate_review(review_id: UUID, hidden: bool, _admin: Annotated[User, Depends(require_roles(UserRole.ADMIN))], db: Annotated[Session, Depends(get_db)]) -> Review:
-    return EngagementService(db).moderate_review(review_id, hidden)
+def moderate_review(review_id: UUID, hidden: bool, admin: Annotated[User, Depends(require_roles(UserRole.ADMIN))], db: Annotated[Session, Depends(get_db)]) -> Review:
+    return EngagementService(db).moderate_review(review_id, hidden, admin)
 
 
 @router.post("/reports", status_code=status.HTTP_201_CREATED)
