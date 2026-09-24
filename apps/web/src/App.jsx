@@ -10,6 +10,7 @@ import SellerDashboardPage from './pages/SellerDashboardPage.jsx'
 import AdminDashboardPage from './pages/AdminDashboardPage.jsx'
 import BuyerOrderDetailPage from './pages/BuyerOrderDetailPage.jsx'
 import MessagesPage from './pages/MessagesPage.jsx'
+import NotificationsPage from './pages/NotificationsPage.jsx'
 import './App.css'
 
 export default function App() {
@@ -24,6 +25,7 @@ export default function App() {
     <Route path="/dashboard/seller" element={<SellerDashboardPage />} />
     <Route path="/dashboard/admin" element={<AdminDashboardPage />} />
     <Route path="/messages" element={<MessagesPage />} />
+    <Route path="/notifications" element={<NotificationsPage />} />
     <Route path="*" element={<Navigate to="/" replace />} />
   </Route></Routes></BrowserRouter>
 }

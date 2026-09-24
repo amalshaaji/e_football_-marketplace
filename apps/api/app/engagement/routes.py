@@ -7,8 +7,8 @@ from sqlalchemy.orm import Session
 
 from app.auth.dependencies import get_current_user, require_roles
 from app.core.dependencies import get_db
-from app.database.models import Message, Review, User, UserRole
-from app.engagement.schemas import ConversationCreate, ConversationResponse, MessageCreate, MessageResponse, ReviewCreate, ReviewResponse
+from app.database.models import Message, Notification, Report, Review, User, UserRole
+from app.engagement.schemas import ConversationCreate, ConversationResponse, MessageCreate, MessageResponse, NotificationResponse, ReportCreate, ReviewCreate, ReviewResponse
 from app.engagement.service import EngagementService
 
 router = APIRouter()
@@ -27,6 +27,22 @@ def seller_reviews(seller_id: UUID = Query(), db: Session = Depends(get_db)) -> 
 @router.patch("/reviews/{review_id}/moderation", response_model=ReviewResponse)
 def moderate_review(review_id: UUID, hidden: bool, _admin: Annotated[User, Depends(require_roles(UserRole.ADMIN))], db: Annotated[Session, Depends(get_db)]) -> Review:
     return EngagementService(db).moderate_review(review_id, hidden)
+
+
+@router.post("/reports", status_code=status.HTTP_201_CREATED)
+def create_report(payload: ReportCreate, user: Annotated[User, Depends(get_current_user)], db: Annotated[Session, Depends(get_db)]) -> dict:
+    report = EngagementService(db).create_report(user, payload)
+    return {"id": str(report.id), "status": report.status.value, "created_at": report.created_at}
+
+
+@router.get("/notifications", response_model=list[NotificationResponse])
+def list_notifications(user: Annotated[User, Depends(get_current_user)], db: Annotated[Session, Depends(get_db)]) -> list[Notification]:
+    return EngagementService(db).list_notifications(user)
+
+
+@router.patch("/notifications/{notification_id}/read", response_model=NotificationResponse)
+def mark_notification_read(notification_id: UUID, user: Annotated[User, Depends(get_current_user)], db: Annotated[Session, Depends(get_db)]) -> Notification:
+    return EngagementService(db).mark_notification_read(notification_id, user)
 
 
 def _conversation_response(conversation, db: Session) -> dict:

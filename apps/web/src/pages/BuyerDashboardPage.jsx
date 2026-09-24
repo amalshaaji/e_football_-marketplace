@@ -33,7 +33,7 @@ export default function BuyerDashboardPage() {
   }
 
   const metrics = [['Orders', state === 'ready' ? String(orders.filter((order) => order.buyer_id === JSON.parse(localStorage.getItem('current_user') || '{}').id).length) : '—'], ['Favorites', state === 'ready' ? String(favorites.length) : '—'], ['Unread messages', '—']]
-  return <DashboardShell role="Buyer" title="Your account" description="Keep track of your purchases and saved squads." nav={[{ label: 'Overview', to: '/dashboard/buyer' }, { label: 'Messages', to: '/messages' }, { label: 'Marketplace', to: '/marketplace' }]} metrics={metrics}>
+  return <DashboardShell role="Buyer" title="Your account" description="Keep track of your purchases and saved squads." nav={[{ label: 'Overview', to: '/dashboard/buyer' }, { label: 'Messages', to: '/messages' }, { label: 'Notifications', to: '/notifications' }, { label: 'Marketplace', to: '/marketplace' }]} metrics={metrics}>
     {state === 'signed-out' && <section className="panel"><div className="empty-state"><strong>Sign in to see your activity</strong><p>Your orders and saved squads are linked to your marketplace account.</p><Link className="btn btn-primary" to="/login">Log in</Link></div></section>}
     {state === 'loading' && <section className="panel"><div className="loading-state" role="status">Loading your account…</div></section>}
     {state === 'error' && <section className="panel"><div className="error-state" role="alert"><strong>Could not load your dashboard</strong><p>{error}</p><button className="btn btn-secondary" onClick={() => window.location.reload()}>Try again</button></div></section>}

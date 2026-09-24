@@ -5,8 +5,8 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.errors import DomainError
-from app.database.models import Conversation, Listing, ListingStatus, Message, Notification, Order, OrderStatus, Review, User
-from app.engagement.schemas import ConversationCreate, MessageCreate, ReviewCreate
+from app.database.models import Conversation, Listing, ListingStatus, Message, Notification, Order, OrderStatus, Report, Review, User
+from app.engagement.schemas import ConversationCreate, MessageCreate, ReportCreate, ReviewCreate
 
 
 class EngagementService:
@@ -19,6 +19,9 @@ class EngagementService:
             raise DomainError("order_not_reviewable", "Only the buyer can review this order.", 404)
         if order.status != OrderStatus.COMPLETED:
             raise DomainError("order_not_completed", "Reviews are available after order completion.", 409)
+        existing = self.session.scalar(select(Review.id).where(Review.order_id == order.id))
+        if existing:
+            raise DomainError("review_already_exists", "This order already has a review.", 409)
         review = Review(order_id=order.id, author_id=author.id, seller_id=order.seller_id, rating=payload.rating, body=payload.body)
         self.session.add(review)
         self.session.flush()
@@ -38,6 +41,32 @@ class EngagementService:
         self.session.commit()
         self.session.refresh(review)
         return review
+
+    def create_report(self, reporter: User, payload: ReportCreate) -> Report:
+        if (payload.listing_id is None) == (payload.reported_user_id is None):
+            raise DomainError("invalid_report_target", "Report exactly one listing or user.", 422)
+        if payload.listing_id and self.session.get(Listing, payload.listing_id) is None:
+            raise DomainError("listing_not_found", "Listing was not found.", 404)
+        if payload.reported_user_id and self.session.get(User, payload.reported_user_id) is None:
+            raise DomainError("user_not_found", "User was not found.", 404)
+        report = Report(reporter_id=reporter.id, listing_id=payload.listing_id, reported_user_id=payload.reported_user_id, reason=payload.reason.strip(), details=payload.details)
+        self.session.add(report)
+        self.session.commit()
+        self.session.refresh(report)
+        return report
+
+    def list_notifications(self, user: User) -> list[Notification]:
+        return list(self.session.scalars(select(Notification).where(Notification.user_id == user.id).order_by(Notification.created_at.desc()).limit(100)))
+
+    def mark_notification_read(self, notification_id: UUID, user: User) -> Notification:
+        notification = self.session.scalar(select(Notification).where(Notification.id == notification_id, Notification.user_id == user.id))
+        if notification is None:
+            raise DomainError("notification_not_found", "Notification was not found.", 404)
+        if notification.read_at is None:
+            notification.read_at = datetime.now(UTC)
+            self.session.commit()
+            self.session.refresh(notification)
+        return notification
 
     def open_conversation(self, buyer: User, payload: ConversationCreate) -> Conversation:
         listing = self.session.get(Listing, payload.listing_id)

@@ -48,3 +48,18 @@ class ConversationResponse(BaseModel):
     listing_id: UUID | None
     created_at: datetime
     messages: list[MessageResponse] = []
+
+
+class ReportCreate(BaseModel):
+    listing_id: UUID | None = None
+    reported_user_id: UUID | None = None
+    reason: str = Field(min_length=3, max_length=100)
+    details: str | None = Field(default=None, max_length=3000)
+
+
+class NotificationResponse(BaseModel):
+    id: UUID
+    event_type: str
+    payload: dict
+    created_at: datetime
+    read_at: datetime | None

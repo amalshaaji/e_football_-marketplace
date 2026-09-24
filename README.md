@@ -2,7 +2,7 @@
 
 Web platform for browsing, listing, buying, and managing eFootball game accounts.
 
-**Current phase:** 12 — Favorites, Reviews & Messaging (in progress)
+**Current phase:** 13 — Notifications & Background Jobs (next)
 
 **Completed:** Phase 1 — Foundation; Phase 2 — Frontend Design System; Phase 3 — Database Architecture (models/migration implemented; live DB application pending); Phase 4 — FastAPI Backend Foundation.
 
@@ -13,6 +13,11 @@ in progress pending live PostgreSQL integration. Phase 9 also requires selecting
 and verifying a real payment provider. Later phases cover notifications and
 background jobs, moderation, security hardening, QA, deployment, operations,
 and launch readiness.
+
+Phase 12 implementation is complete: favorites, eligible reviews and
+moderation, reporting, participant-only messaging, read state, and user-visible
+in-app notifications are implemented. Live PostgreSQL integration has not yet
+been verified in this environment.
 
 ## Stack
 
